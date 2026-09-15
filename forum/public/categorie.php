@@ -19,7 +19,7 @@ $stmt=$pdo->prepare('SELECT sujets.*, utilisateurs.pseudo FROM sujets JOIN utili
 $stmt->execute([$id_categorie]);
 $sujets=$stmt->fetchAll();
 ?>
-<p><a href="/forum/public/index.php">&larr; Retour aux catégories</a></p>
+<p><a href="/index.php">&larr; Retour aux catégories</a></p>
         <main>
         <h1><?= htmlspecialchars($categorie['nom']) ?></h1>
         <p class="text-muted"><?= htmlspecialchars($categorie['description']) ?></p>

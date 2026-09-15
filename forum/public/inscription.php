@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
 }
 ?>
     <main>
+    <p><a href="/index.php">&larr; Retour aux catégories</a></p>
     <h1 class="mb-4">Inscription</h1>
     <?php if($erreur): ?>
     <div class="alert alert-danger"><?= htmlspecialchars($erreur) ?></div>
@@ -40,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
     <div class="alert alert-success"><?= ($success) ?></div>
     <?php endif; ?>
     <form action="" method="post">
-        <div class="mb-3">
+        <div class="mb-3" id="couleur_dark_placeholder">
             <label for="pseudo" class="form-label">Pseudo</label>
             <input type="text" name="pseudo" id="pseudo" class="form-control" required placeholder="Entrez votre pseudo">
         </div>

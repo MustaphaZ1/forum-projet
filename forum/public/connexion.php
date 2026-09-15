@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
         </div>
         <div class="mb-3">
             <label for="mot_de_passe" class="form-label">Mot de passe</label>
-            <input type="password" name="mot_de_passe" id="mot_de_passe" class="label-form" placeholder="Entrez votre mot de passe" required>
+            <input type="password" name="mot_de_passe" id="mot_de_passe" class="form-control" placeholder="Entrez votre mot de passe" required>
         </div>
         <button type="submit" class="btn btn-primary">Se connecter</button>
     </form>
