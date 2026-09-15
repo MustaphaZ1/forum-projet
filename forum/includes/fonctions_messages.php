@@ -1,28 +1,38 @@
 <?php
 require_once __DIR__ . '/../config/cle_secrete.php';
 function chiffrerMessage(string $message): string {
-    $iv=random_bytes(12);
-    $tag='';
-    $messageChiffre=openssl_encrypt($message,'AES-256-CGM', CLE_SECRETE_MESSAGES, OPENSSL_RAW_DATA, $iv, $tag);
-    if($messageChiffre===false){
-        throw new RuntimeException('Erreur lors du chiffrement du message.');
+    $cleChiffrement=hash('sha256', CLE_SECRETE_MESSAGES . 'chiffrement', true);
+    $cleAuthentification=hash('sha256', CLE_SECRETE_MESSAGES . 'authentification', true);
+    $iv=random_bytes(16);
+    $messageChiffre=openssl_encrypt($message, 'AES-256-CBC', $cleChiffrement, OPENSSL_RAW_DATA, $iv);
+    if ($messageChiffre===false){
+        throw new RuntimeException('Erreur lors du chiffrement du message');
     }
-    return base64_encode($iv . $tag . $messageChiffre);
+    $signature=hash_hmac('sha256', $iv . $messageChiffre, $cleAuthentification, true);
+    $contenu=$iv . $signature . $messageChiffre;
+    return base64_encode($contenu);
 }
 function dechiffrerMessage(string $messageChiffre): string {
     $contenu=base64_decode($messageChiffre, true);
-    if($contenu===false){
-        throw new RuntimeException('Message chiffré invalide.');
+    if ($contenu===false){
+        throw new RuntimeException('Message chiffré invalide');
     }
-    $iv=substr($contenu, 0, 12);
-    $tag=substr($contenu, 12, 16);
-    $contenuChiffre=substr($contenu, 28);
-    if(strlen($iv)!==12 || strlen($tag)!==16 || $contenuChiffre===''){
-        throw new RuntimeException('Message chiffré invalide.');
+    if (strlen($contenu)<49){
+        throw new RuntimeException('Message chiffré invalide');
     }
-    $message=openssl_decrypt($contenuChiffre, 'AES-256-CGM', CLE_SECRETE_MESSAGES, OPENSSL_RAW_DATA, $iv, $tag);
-    if($message===false){
-        throw new RuntimeException('Impossible de déchiffrer le message.');
+    $iv=substr($contenu, 0, 16);
+    $signature=substr($contenu, 16, 32);
+    $contenuChiffre=substr($contenu, 48);
+    $cleChiffrement=hash('sha256', CLE_SECRETE_MESSAGES . 'chiffrement', true);
+    $cleAuthentification=hash('sha256', CLE_SECRETE_MESSAGES . 'authentification', true);
+    $signatureAttendue=hash_hmac('sha256', $iv . $contenuChiffre, $cleAuthentification, true);
+    if(!hash_equals($signatureAttendue, $signature)){
+        throw new RuntimeException('Le message chiffré a été modifié ou est invalide');
+    }
+    $message=openssl_decrypt($contenuChiffre, 'AES-256-CBC', $cleChiffrement, OPENSSL_RAW_DATA, $iv);
+    if ($message===false){
+        throw new RuntimeException('Impossible de déchiffrer le message');
     }
     return $message;
 }
+?>

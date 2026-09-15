@@ -5,9 +5,9 @@ require_once __DIR__ . '/../includes/header.php';
 $erreur ='';
 $success='';
 if ($_SERVER['REQUEST_METHOD']==='POST'){
-    $pseudo =trim($_POST['pseudo']??'');
+    $pseudo =trim($_POST['pseudo'] ?? '');
     $email=trim($_POST['email'] ?? '');
-    $mot_de_passe=$_POST['mot_de_passe']??'';
+    $mot_de_passe=$_POST['mot_de_passe'] ?? '';
     if ($pseudo===''||$email===''||$mot_de_passe===''){
         $erreur='Tous les champs sont obligatoires.';}
     elseif(strlen($mot_de_passe)<6){

@@ -8,7 +8,7 @@ function getPDO(): PDO {
     $user=$_ENV['DB_USER'];
     $password=$_ENV['DB_PASSWORD'];
     $charset='utf8mb4';
-    $dsn="mysql:host=$host;dbname=$dbname;charset=$charset;port=3306";
+    $dsn="mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=$dbname;charset=$charset;";
     $options=[
         PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,

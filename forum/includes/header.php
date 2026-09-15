@@ -15,9 +15,10 @@
             </a>
             <div class="ms-auto align-items-center d-flex gap-2">
                 <?php if (isset($_SESSION['pseudo'])): ?>
+            <a href="/forum/public/messages_prives.php" class="text-decoration-none ms-3">✉️ 📬 MP</a>
         <!-- Affiche le pseudo de l'utilisateur connecté (manière sécurisée anti-XSS)-->
             <p class="text-end">Connecté en tant que <a href="/profil.php"><?= htmlspecialchars($_SESSION['pseudo']) ?></a>
-            <a href="/deconnexion.php" class="text-danger text-decoration-none ms-2">
+            <a href="/forum/public/deconnexion.php" class="text-danger text-decoration-none ms-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" class="mb-1">
                     <path d="M5.146 5.146a.5.5 0 0 1 .708.708 3.5 3.5 0 1 0 4.288-.001.5.5 0 1 1 .61-.792 4.5 4.5 0 1 1-5.606.001z"/>
                     <path d="M7.5 1v7a.5.5 0 0 0 1 0V1a.5.5 0 0 0-1 0z"/>
@@ -27,8 +28,8 @@
         <!-- Si l'utilisateur n'est pas connecté-->
             <?php else : ?>
                 <p>
-                    <a href="/connexion.php">Se connecter</a>|
-                    <a href="/inscription.php">S'inscrire</a>
+                    <a href="/forum/public/connexion.php">Se connecter</a>|
+                    <a href="/forum/public/inscription.php">S'inscrire</a>
                 </p>
         <?php endif; ?>
                 <button class="btn btn-secondary" id="theme-toggle">🌙
