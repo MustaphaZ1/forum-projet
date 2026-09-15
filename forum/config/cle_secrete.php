@@ -1,0 +1,3 @@
+<?php
+const CLE_SECRETE_MESSAGES =
+'9M7pKx4vL2nQ8sTfW6yR3uA1cD5eH9jB';
