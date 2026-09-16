@@ -13,7 +13,7 @@ function afficherMessages(messages){
         const classeMessage= message.est_moi ? 'message-envoye' : 'message-recu';
         const div= document.createElement('div');
         div.className= `d-flex mb-3 ${alignement}`;
-        div.innerHTML= `<div class="card ${classeMessage}" style="max-width: 70%;"><div class="card-body"><p class="card-text mb-2">${nl2br(message.contenu)}</p><small>${formaterDate(message.date_envoi)}</small><form method="post" action="supprimer_message_prive.php" class="mt-1"><input type="hidden" name="id_message_prive" value="${message.id_message_prive}"><input type="hidden" name="id_interlocuteur" value="${idInterlocuteur}"><button type="submit" class="btn btn-link btn-sm text-decoration-none p-0">Supprimer</button></form></div></div>`;
+        div.innerHTML= `<div class="card ${classeMessage}" style="max-width: 70%;"><div class="card-body"><p class="card-text mb-2">${nl2br(message.contenu)}</p><small>${formaterDate(message.date_envoi)}</small><form method="post" action="supprimer_message_prive.php" class="mt-1"><input type="hidden" name="id_message_prive" value="${message.id_message_prive}"><input type="hidden" name="id_interlocuteur" value="${idInterlocuteur}"><button type="submit" class="btn btn-link btn-sm text-danger text-decoration-none p-0">Supprimer&nbsp;<span class="emoji-fix">\u{1F5D1}</span></button></form></div></div>`;
         zoneMessages.appendChild(div);
     });
 }

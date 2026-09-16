@@ -53,7 +53,7 @@ $messages=$stmt->fetchAll();
             <h1 class="mt-2"><?= htmlspecialchars($interlocuteur['pseudo']) ?></h1>
             <form action="supprimer_conversation.php" method="post" onsubmit="return confirm('Supprimer toute la conversation ?');" class="d-inline">
                 <input type="hidden" name="id_interlocuteur" value="<?= (int)$interlocuteur['id_utilisateur'] ?>">
-                <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer la conversation</button>
+                <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer la conversation &#x1F5D1;</button>
             </form>
         </div>
     </div>
@@ -81,7 +81,7 @@ $messages=$stmt->fetchAll();
                             <form action="supprimer_message_prive.php" method="post" onsubmit="return confirm('Supprimer ce message (uniquement pour vous) ?');" class="mt-1">
                                 <input type="hidden" name="id_message_prive" value="<?= (int)$message['id_message_prive'] ?>">
                                 <input type="hidden" name="id_interlocuteur" value="<?= (int)$interlocuteur['id_utilisateur'] ?>">
-                                <button type="submit" class="btn btn-link btn-sm text-decoration-none <?= $est_moi ? 'text-white-50' : 'text-muted' ?> p-0">Supprimer</button>
+                                <button type="submit" class="btn btn-link btn-sm text-decoration-none <?= $est_moi ? 'text-white-50' : 'text-muted' ?> p-0">Supprimer &#x1F5D1;</button>
                             </form>
                         </div>
                     </div>
