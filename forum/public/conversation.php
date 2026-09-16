@@ -51,12 +51,16 @@ $messages=$stmt->fetchAll();
         <div class="d-flex justify-content-between align-items-center mb-4">
             <a href="messages_prives.php" class="text-decoration-none">&larr; Retour aux messages</a>
             <h1 class="mt-2"><?= htmlspecialchars($interlocuteur['pseudo']) ?></h1>
+            <form action="supprimer_conversation.php" method="post" onsubmit="return confirm('Supprimer toute la conversation ?');" class="d-inline">
+                <input type="hidden" name="id_interlocuteur" value="<?= (int)$interlocuteur['id_utilisateur'] ?>">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer la conversation</button>
+            </form>
         </div>
     </div>
     <?php if ($erreur !==''): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($erreur) ?></div>
     <?php endif; ?>
-    <div class="mb-4">
+    <div class="mb-4" id="zone-messages">
         <?php if (empty($messages)): ?>
             <div class="alert alert-secondary">Aucun message dans cette conversation</div>
         <?php else: ?>
@@ -74,6 +78,11 @@ $messages=$stmt->fetchAll();
                         <div class="card-body">
                             <p class="card-text mb-2" style="<?= $est_moi ? 'color:white;' : 'color: white;' ?>"><?= nl2br(htmlspecialchars($contenu)) ?></p>
                             <small class="<?= $est_moi ? 'text-white-50' : 'text-muted' ?>"><?= date('d/m/Y H:i', strtotime($message['date_envoi'])) ?></small>
+                            <form action="supprimer_message_prive.php" method="post" onsubmit="return confirm('Supprimer ce message (uniquement pour vous) ?');" class="mt-1">
+                                <input type="hidden" name="id_message_prive" value="<?= (int)$message['id_message_prive'] ?>">
+                                <input type="hidden" name="id_interlocuteur" value="<?= (int)$interlocuteur['id_utilisateur'] ?>">
+                                <button type="submit" class="btn btn-link btn-sm text-decoration-none <?= $est_moi ? 'text-white-50' : 'text-muted' ?> p-0">Supprimer</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -87,3 +96,4 @@ $messages=$stmt->fetchAll();
         </div>
     </form>
 <?php require_once __DIR__ . '/../includes/footer.php' ?>
+<script src="js/messagerie.js"></script>

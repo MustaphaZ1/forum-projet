@@ -3,7 +3,7 @@ session_start();
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/header.php';
 if (!isset($_SESSION['id_utilisateur'])){
-    header('Locatioin: connexion.php');
+    header('Location: connexion.php');
     exit;
 }
 $id_sujet=$_POST['id_sujet']??null;
