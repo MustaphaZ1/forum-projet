@@ -30,10 +30,57 @@ function formaterDate(dateSql){
     const jour= String(date.getDate()).padStart(2, '0');
     const mois= String(date.getMonth() + 1).padStart(2, '0');
     const annee= date.getFullYear();
-    const heures= String(date.getMinutes()).padStart(2, '0');
+    const heures= String(date.getHours()).padStart(2, '0');
     const minutes= String(date.getMinutes()).padStart(2, '0');
     return `${jour} / ${mois} / ${annee} ${heures}:${minutes}`;
 }
+const formEnvoi= document.getElementById('form-envoi-message');
+if (formEnvoi){
+    formEnvoi.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const champTexte= document.getElementById('contenu-message');
+        const contenu= champTexte.value.trim();
+        if (contenu==='') return;
+        const donnees= new FormData();
+        donnees.append('contenu', contenu);
+        donnees.append('ajax', '1');
+        fetch('conversation.php?id_utilisateur=' + idInterlocuteur, {
+            method: 'POST', body: donnees
+        })
+        .then(response=>response.json())
+        .then(resultat=>{
+            console.log('Resultat recu :', resultat);
+            if (resultat.succes){
+                champTexte.value= '';
+                chargerMessages();
+            } else {
+                alert(resultat.erreur || 'Erreur lors de l\'envoi du message');
+            }
+        })
+        .catch(erreur=>console.error('Erreur envoi message :',erreur));
+    });
+}
+zoneMessages.addEventListener('submit', (e)=>{
+    const form= e.target;
+    if (form.matches('form[action="supprimer_message_prive.php"]')){
+        e.preventDefault();
+        if (!confirm('Supprimer ce message (uniquement pour vous) ?')) return;
+        const donnees= new FormData(form);
+        donnees.append('ajax', '1');
+        fetch('supprimer_message_prive.php', {
+            method: 'POST', body: donnees
+        })
+        .then(response=>response.json())
+        .then(resultat=>{
+            if (resultat.succes){
+                chargerMessages();
+            } else {
+                alert(resultat.erreur || 'Erreur lors de la suppression');
+            }
+        })
+        .catch(erreur=>console.error('Erreur suppression :', erreur));
+    }
+});
 function chargerMessages(){
     fetch(`recuperer_message.php?id_interlocuteur=${idInterlocuteur}`)
     .then(response => response.json())

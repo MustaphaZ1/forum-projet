@@ -10,15 +10,19 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
         $erreur='Tous les champs sont obligatoires.';
     } else {
         $pdo=getPDO();
-        $stmt=$pdo->prepare('SELECT id_utilisateur, pseudo, mot_de_passe FROM utilisateurs WHERE email=?');
+        $stmt=$pdo->prepare('SELECT id_utilisateur, pseudo, mot_de_passe, email_confirme FROM utilisateurs WHERE email=?');
         $stmt->execute([$email]);
         $utilisateur=$stmt->fetch();
         if ($utilisateur && password_verify($mot_de_passe, $utilisateur['mot_de_passe'])){
-            $_SESSION['id_utilisateur']=$utilisateur['id_utilisateur'];
-            $_SESSION['pseudo']=$utilisateur['pseudo'];
-            header('Location: index.php');
-            exit;
-        } else {
+            if(!$utilisateur['email_confirme']){
+                $erreur='Merci de confirmer ton email avant de te connecter';
+            } else {
+                $_SESSION['id_utilisateur']=$utilisateur['id_utilisateur'];
+                $_SESSION['pseudo']=$utilisateur['pseudo'];
+                header('Location: index.php');
+                exit;
+            }
+            } else {
             $erreur='Email ou mot de passe incorrect.';
         }
     }

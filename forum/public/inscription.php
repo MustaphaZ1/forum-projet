@@ -1,4 +1,7 @@
 <?php
+
+use PHPMailer\PHPMailer\PHPMailer;
+
 session_start();
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/header.php';
@@ -20,13 +23,29 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
             $erreur='Ce pseudo ou cet email est déja utilisé. Veuillez vous connecter avec vos identifiants.';}
         else {
             $hash=password_hash($mot_de_passe, PASSWORD_DEFAULT);
-            $stmt=$pdo->prepare('INSERT INTO utilisateurs (pseudo,email,mot_de_passe) VALUES (?,?,?)');
-            $stmt->execute([$pseudo,$email,$hash]);
-            $success='Inscritpion réussie ! Tu es maintenant connecté tu peux accéder au <a href="sujet.php">sujets</a>.';
-            $_SESSION['id_utilisateur']=$pdo->lastInsertId();
-            $_SESSION['pseudo']=$pseudo;
-            header('Location: index.php');
-            exit;
+            $token=bin2hex(random_bytes(32));
+            $stmt=$pdo->prepare('INSERT INTO utilisateurs (pseudo,email,mot_de_passe,token_confirmation) VALUES (?,?,?,?)');
+            $stmt->execute([$pseudo,$email,$hash,$token]);
+            $lienConfirmation="https://forum-resu.infinityfree.me/confirmation.php?token=" . $token;
+            $mail=new PHPMailer(true);
+            try {
+                $mail->isSMTP();
+                $mail->Host=$_ENV['SMTP_HOST'];
+                $mail->SMTPAuth=true;
+                $mail->Username=$_ENV['SMTP_USER'];
+                $mail->Password=$_ENV['SMTP_PASS'];
+                $mail->SMTPSecure='tls';
+                $mail->Port=$_ENV['STMP_PORT'];
+                $mail->CharSet='UTF-8';
+                $mail->setFrom($_ENV['SMTP_USER'], 'Forum');
+                $mail->addAddress($email);
+                $mail->Subject='Confirmes ton inscription';
+                $mail->Body='Bonjour $pseudo, \n\nClique sur ce lien pour confirmer ton compte :\n$lienConfirmation';
+                $mail->send();
+            } catch (Exception $e){
+                $erreur="L'inscription a réussi mais l'email n'a pas pu etre envoyé";
+            }
+            $success='Inscritpion réussie ! Confirmes ton inscription sur ton email';
         }
     }
 }

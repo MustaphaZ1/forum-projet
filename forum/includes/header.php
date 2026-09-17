@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forum</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/theme.css">
 </head>
@@ -13,6 +14,7 @@
             <a class="navbar-brand" href="/index.php">
             Forum
             </a>
+            <img src="/favicon.png" alt="logo">
             <div class="ms-auto align-items-center d-flex gap-2">
                 <?php if (isset($_SESSION['pseudo'])): ?>
             <a href="/forum/public/messages_prives.php" class="text-decoration-none ms-3">✉️ 📬 MP</a>
@@ -23,7 +25,7 @@
                     <path d="M5.146 5.146a.5.5 0 0 1 .708.708 3.5 3.5 0 1 0 4.288-.001.5.5 0 1 1 .61-.792 4.5 4.5 0 1 1-5.606.001z"/>
                     <path d="M7.5 1v7a.5.5 0 0 0 1 0V1a.5.5 0 0 0-1 0z"/>
                 </svg>
-                Se déconnecter
+                <span class="d-none d-sm d-sm-inline"> Se déconnecter</span>
             </a></p>
         <!-- Si l'utilisateur n'est pas connecté-->
             <?php else : ?>
