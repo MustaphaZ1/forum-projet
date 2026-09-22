@@ -1,8 +1,10 @@
 <?php
-
-use PHPMailer\PHPMailer\PHPMailer;
-
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 session_start();
+require_once __DIR__ . '/../vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/header.php';
 $erreur ='';
@@ -16,36 +18,45 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
     elseif(strlen($mot_de_passe)<6){
         $erreur='Le mot de passe doit contenir au moins 6 caractères.';}
     else {
-        $pdo=getPDO();
-        $stmt=$pdo->prepare('SELECT id_utilisateur FROM utilisateurs WHERE pseudo = ? OR email=?');
-        $stmt->execute([$pseudo, $email]);
-        if ($stmt->fetch()){
-            $erreur='Ce pseudo ou cet email est déja utilisé. Veuillez vous connecter avec vos identifiants.';}
-        else {
-            $hash=password_hash($mot_de_passe, PASSWORD_DEFAULT);
-            $token=bin2hex(random_bytes(32));
-            $stmt=$pdo->prepare('INSERT INTO utilisateurs (pseudo,email,mot_de_passe,token_confirmation) VALUES (?,?,?,?)');
-            $stmt->execute([$pseudo,$email,$hash,$token]);
-            $lienConfirmation="https://forum-resu.infinityfree.me/confirmation.php?token=" . $token;
-            $mail=new PHPMailer(true);
-            try {
-                $mail->isSMTP();
-                $mail->Host=$_ENV['SMTP_HOST'];
-                $mail->SMTPAuth=true;
-                $mail->Username=$_ENV['SMTP_USER'];
-                $mail->Password=$_ENV['SMTP_PASS'];
-                $mail->SMTPSecure='tls';
-                $mail->Port=$_ENV['STMP_PORT'];
-                $mail->CharSet='UTF-8';
-                $mail->setFrom($_ENV['SMTP_USER'], 'Forum');
-                $mail->addAddress($email);
-                $mail->Subject='Confirmes ton inscription';
-                $mail->Body='Bonjour $pseudo, \n\nClique sur ce lien pour confirmer ton compte :\n$lienConfirmation';
-                $mail->send();
-            } catch (Exception $e){
-                $erreur="L'inscription a réussi mais l'email n'a pas pu etre envoyé";
-            }
-            $success='Inscritpion réussie ! Confirmes ton inscription sur ton email';
+        $captchaReponse = $_POST['g-recaptcha-response'] ?? '';
+        if ($captchaReponse === ''){
+            $erreur='Merci de valider le captcha';
+        } else {
+            $verif = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret=' . $_ENV['RECAPTCHA_SECRET_KEY'] . '&response=' . $captchaReponse);
+            $verifData = json_decode($verif);
+            if (!$verifData->success){
+                $erreur='Le captcha est invalide, réessaies';
+            } else {         
+                $pdo=getPDO();         
+                $stmt=$pdo->prepare('SELECT id_utilisateur FROM utilisateurs WHERE pseudo = ? OR email=?');         
+                $stmt->execute([$pseudo, $email]);         
+                if ($stmt->fetch()){             
+                    $erreur='Ce pseudo ou cet email est déja utilisé. Veuillez vous connecter avec vos identifiants.';}         
+                else {             
+                    $hash=password_hash($mot_de_passe, PASSWORD_DEFAULT);             
+                    $token=bin2hex(random_bytes(32));             
+                    $stmt=$pdo->prepare('INSERT INTO utilisateurs (pseudo,email,mot_de_passe,token_confirmation) VALUES (?,?,?,?)');             
+                    $stmt->execute([$pseudo,$email,$hash,$token]);             
+                    $lienConfirmation="https://forum-resu.infinityfree.me/forum/public/confirmation.php?token=" . $token;             
+                    $mail=new PHPMailer(true);             
+                    try {                 
+                        $mail->isSMTP();                 
+                        $mail->Host=$_ENV['SMTP_HOST'];                 
+                        $mail->SMTPAuth=true;                 
+                        $mail->Username=$_ENV['SMTP_USER'];                 
+                        $mail->Password=$_ENV['SMTP_PASS'];                 
+                        $mail->SMTPSecure='tls';                 
+                        $mail->Port=$_ENV['SMTP_PORT'];                 
+                        $mail->CharSet='UTF-8';                 
+                        $mail->setFrom($_ENV['SMTP_USER'], 'Forum');                 
+                        $mail->addAddress($email);                 
+                        $mail->Subject='Confirmes ton inscription';                 
+                        $mail->isHTML(true);                 
+                        $mail->Body="Bonjour $pseudo,<br><br>Cliques sur ce lien pour confirmer ton inscription :<br><a href=\"$lienConfirmation\">Confirmer mon compte</a>";                 
+                        $mail->send();             } 
+                    catch (Exception $e){                 
+                        $erreur="L'inscription a réussi mais l'email n'a pas pu etre envoyé";             }             
+                    $success='Inscritpion réussie ! Confirmes ton inscription sur ton email';         }     }
         }
     }
 }
@@ -72,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
             <label for="mot_de_passe" class="form-label">Mot de passe</label>
             <input type="password" name="mot_de_passe" id="mot_de_passe" class="form-control" required placeholder="Entrez un mot de passe valable">
         </div>
+        <div class="g-recaptcha" data-sitekey="<?= $_ENV['RECAPTCHA_SITE_KEY']?>"></div>
         <button type="submit" class="btn btn-primary">S'inscrire</button>
     </form>
     </main>

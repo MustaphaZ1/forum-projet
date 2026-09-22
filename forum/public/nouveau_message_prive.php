@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD']==='GET'){
 }
 ?>
 <body>
+    <p><a href="/forum/public/index.php">&larr; Retour à l'accueil</a></p>
 <div class="container mt-5" style="max-width: 800px;">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Nouveau message</h1>
@@ -47,3 +48,4 @@ if ($_SERVER['REQUEST_METHOD']==='GET'){
         <?php endif; ?>
     <?php endif; ?>
 </div>
+<?php require_once __DIR__ . '/../includes/footer.php' ?>

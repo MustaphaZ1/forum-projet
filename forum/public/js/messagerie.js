@@ -88,4 +88,4 @@ function chargerMessages(){
     .catch(erreur => console.error('Erreur de chargement des message :', erreur));
 }
 chargerMessages();
-setInterval(chargerMessages, 5000);
+setInterval(chargerMessages, 2800);

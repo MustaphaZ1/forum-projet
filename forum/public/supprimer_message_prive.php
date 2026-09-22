@@ -1,5 +1,6 @@
 <?php
 session_start();
+$estAjax=!empty($_POST['ajax']);
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/header.php';
 if (!isset($_SESSION['id_utilisateur'])){
@@ -33,6 +34,11 @@ if ((int)$message['id_expediteur']===(int)$_SESSION['id_utilisateur']){
 }
 $stmt=$pdo->prepare('DELETE FROM messages_prives WHERE id_message_prive=? AND suppression_expediteur=1 AND suppression_destinataire=1');
 $stmt->execute([$id_message_prive]);
+if ($estAjax){
+    header('Content-Type: application/json');
+    echo json_encode(['succes'=>true]);
+    exit;
+}
 header('Location: conversation.php?id_utilisateur=' . $id_interlocuteur);
 exit;
 ?>

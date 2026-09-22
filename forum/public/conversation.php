@@ -1,8 +1,8 @@
 <?php
 session_start();
+date_default_timezone_set('Europe/Paris');
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/fonctions_messages.php';
-require_once __DIR__ . '/../includes/header.php';
 if (!isset($_SESSION['id_utilisateur'])){
     header('Location: connexion.php');
     exit;
@@ -24,19 +24,36 @@ if (!$interlocuteur){
     die('Utilisateur introuvable');
 }
 $erreur='';
+$estAjax=!empty($_POST['ajax']);
 if ($_SERVER['REQUEST_METHOD']==='POST'){
     $contenu=trim($_POST['contenu']??'');
     if ($contenu===''){
         $erreur='Le message ne peut pas être vide.';
+        if ($estAjax){
+            header('Content-Type: application/json');
+            echo json_encode(['succes'=>false, 'erreur'=>$erreur]);
+            exit;
+        }
     } else {
         try {
             $contenu_chiffre= chiffrerMessage($contenu);
-            $stmt=$pdo->prepare('INSERT INTO messages_prives (id_expediteur, id_destinataire, contenu_chiffre, lu, date_envoi, suppression_expediteur, suppression_destinataire) VALUES (?, ?, ?, 0, NOW(), 0, 0)');
-            $stmt->execute([$id_utilisateur, $id_interlocuteur, $contenu_chiffre]);
+            $dateActuelle=date('Y-m-d H:i:s');
+            $stmt=$pdo->prepare('INSERT INTO messages_prives (id_expediteur, id_destinataire, contenu_chiffre, lu, date_envoi, suppression_expediteur, suppression_destinataire) VALUES (?, ?, ?, 0, ?, 0, 0)');
+            $stmt->execute([$id_utilisateur, $id_interlocuteur, $contenu_chiffre, $dateActuelle]);
+            if ($estAjax){
+                header('Content-Type: application/json');
+                echo json_encode(['succes'=>true]);
+                exit;
+            }
             header('Location: conversation.php?id_utilisateur='.$id_interlocuteur);
             exit;
         } catch (Throwable $e){
-            $erreur='Une erreur est survenue lors de l\'envoi du message.';
+            $erreur='Une erreur est survenue lors de l\'envoi du message. ' . $e->getMessage();
+            if ($estAjax){
+                header('Content-Type: application/json');
+                echo json_encode(['succes'=>false, 'erreur'=>$erreur]);
+                exit;
+            }
         }
     }
 }
@@ -45,17 +62,18 @@ $stmt->execute([$id_interlocuteur, $id_utilisateur]);
 $stmt=$pdo->prepare('SELECT id_message_prive, id_expediteur, id_destinataire, contenu_chiffre, lu, date_envoi FROM messages_prives WHERE (id_expediteur=? AND id_destinataire=? AND suppression_expediteur=0) OR (id_expediteur=? AND id_destinataire=? AND suppression_destinataire=0) ORDER BY date_envoi ASC, id_message_prive ASC');
 $stmt->execute([$id_utilisateur, $id_interlocuteur, $id_interlocuteur, $id_utilisateur]);
 $messages=$stmt->fetchAll();
+require_once __DIR__ . '/../includes/header.php';
 ?>
 <body>
-    <div class="container mt-5" style="max-width: 800px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="messages_prives.php" class="text-decoration-none">&larr; Retour aux messages</a>
-            <h1 class="mt-2"><?= htmlspecialchars($interlocuteur['pseudo']) ?></h1>
+    <div class="mb-2">
+        <a href="messages_prives.php" class="text-decoration-none">&larr; Retour</a>
+    </div>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h1 class="mb-0"><?= htmlspecialchars($interlocuteur['pseudo']) ?></h1>
             <form action="supprimer_conversation.php" method="post" onsubmit="return confirm('Supprimer toute la conversation ?');" class="d-inline">
                 <input type="hidden" name="id_interlocuteur" value="<?= (int)$interlocuteur['id_utilisateur'] ?>">
-                <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer la conversation &#x1F5D1;</button>
+                <button type="submit" class="btn btn-outline-danger btn-sm">Tout supprimer &#x1F5D1;</button>
             </form>
-        </div>
     </div>
     <?php if ($erreur !==''): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($erreur) ?></div>
@@ -89,9 +107,9 @@ $messages=$stmt->fetchAll();
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
-    <form action="" method="post">
+    <form action="" method="post" id="form-envoi-message">
         <div class="input-group">
-            <textarea name="contenu" id="" rows="2" class="form-control" placeholder="Ecrire un message ..." required></textarea>
+            <textarea name="contenu" id="contenu-message" rows="2" class="form-control" placeholder="Ecrire un message ..." required></textarea>
             <button type="submit" class="btn btn-primary">Envoyer</button>
         </div>
     </form>

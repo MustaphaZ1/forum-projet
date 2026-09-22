@@ -41,10 +41,10 @@ foreach ($messages as $message){
 }
 ?>
 <body>
-    <div class="container mt-5" style="max-width: 800px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Messages privés</h1>
-            <a href="nouveau_message_prive.php" class="btn btn-primary">Nouveau message</a>
+    <div class="container mt-5 messages-container">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
+            <h1 class="h3 h1-sm mb-0">Messages privés</h1>
+            <a href="nouveau_message_prive.php" class="btn btn-primary btn-sm btn-sm-sm">Nouveau message</a>
         </div>
         <?php if(empty($conversations)): ?>
             <div class="alert alert-secondary">Vous n'avez aucune conversation vous pouvez en commencer une</div>
