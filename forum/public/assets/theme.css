@@ -66,3 +66,7 @@ body.dark-mode .bg-light{
         padding: 0.375rem 0.75rem;
     }
 }
+body.dark-mode .form-control::placeholder{
+    color: #adb5bd;
+    opacity: 1;
+}
