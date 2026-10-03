@@ -41,6 +41,7 @@ foreach ($messages as $message){
 }
 ?>
 <body>
+    <p><a href="/forum/public/index.php">&larr; Retour aux catégories</a></p>
     <div class="container mt-5 messages-container">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
             <h1 class="h3 h1-sm mb-0">Messages privés</h1>

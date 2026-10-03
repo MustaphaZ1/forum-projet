@@ -25,6 +25,7 @@ $stmt->execute([$_SESSION['id_utilisateur']]);
 $nb_reponses=$stmt->rowCount();
 ?>
         <main>
+        <p><a href="/forum/public/index.php">&larr; Retour aux catégories</a></p>
         <h1>Mon profil</h1>
         <div class="card mb-4">
             <div class="card-body">
