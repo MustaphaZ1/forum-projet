@@ -45,6 +45,7 @@ if (!$sujet){die('Sujet introuvable.');}
 $erreur=''; // Initialisation de la variable de message d'erreur
 // Detecte si l'utilisateur a soumis le formulaire (requete HTTP POST)
 if($_SERVER['REQUEST_METHOD']==='POST'){
+    csrf_verifier();
 // Sécurité : Si l'utilisateur n'est pas connecté, on le redirige vers la page de connxion
     if (!isset($_SESSION['id_utilisateur'])){
         header ('Location: connexion.php');

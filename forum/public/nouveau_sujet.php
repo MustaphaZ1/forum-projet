@@ -18,6 +18,7 @@ if (!$categorie) {
 }
 $erreur='';
 if ($_SERVER['REQUEST_METHOD']==='POST'){
+    csrf_verifier();
     $titre=trim($_POST['titre']??'');
     $contenu=trim($_POST['contenu']??'');
     if ($titre===''|| $contenu===''){
@@ -41,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
             <div class="alert alert-danger"><?=htmlspecialchars($erreur)?></div>
         <?php endif; ?>
         <form action="" method="post">
+            <?= csrf_champ() ?>
             <input type="hidden" name="id_categorie" value="<?= $categorie['id_categorie'] ?>">
             <div class="mb-3">
                 <label for="titre" class="form-label">Titre</label>

@@ -24,6 +24,7 @@ if(!$message || $message['id_utilisateur']!== $_SESSION['id_utilisateur']){
 }
 // Si le formulaire a été soumis
 if ($_SERVER['REQUEST_METHOD']==='POST'){
+    csrf_verifier();
     $nouveau_contenu=trim($_POST['contenu']);
     if($nouveau_contenu!==''){
         $update=$pdo->prepare('UPDATE messages SET contenu=? WHERE id_message=?');
@@ -36,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
 <main>
     <h1>Modifier le message</h1>
     <form action="" method="post">
+        <?= csrf_champ() ?>
         <textarea name="contenu" id="contenu" class="form-control mb-3" rows="5"><?= htmlspecialchars($message['contenu']) ?></textarea>
         <button type="submit" class="btn btn-primary">Enregistrer</button>
         <a href="sujet.php?id_sujet=<?= $message['id_sujet'] ?>" class="btn btn-secondary">Annuler</a>

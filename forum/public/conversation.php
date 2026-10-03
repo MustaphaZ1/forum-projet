@@ -138,4 +138,5 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </form>
 <?php require_once __DIR__ . '/../includes/footer.php' ?>
+<script>const CSRF_TOKEN = "<?= csrf_token() ?>";</script>
 <script src="js/messagerie.js"></script>

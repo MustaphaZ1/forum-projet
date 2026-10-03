@@ -13,6 +13,7 @@ require_once __DIR__ . '/../includes/header.php';
 $erreur ='';
 $success='';
 if ($_SERVER['REQUEST_METHOD']==='POST'){
+    csrf_verifier();
     // RECUPERE LES DONNEES DU FORMULAIRE ET ENLEVE LES ESPACES SUPERFLUS (trim)
     $pseudo =trim($_POST['pseudo'] ?? '');
     $email=trim($_POST['email'] ?? '');
@@ -94,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
     <?php endif; ?>
     <!-- FORMULAIRE D'INSCRIPTION (POST) -->
     <form action="" method="post">
+        <?= csrf_champ() ?>
         <div class="mb-3" id="couleur_dark_placeholder">
             <label for="pseudo" class="form-label">Pseudo</label>
             <input type="text" name="pseudo" id="pseudo" class="form-control" required placeholder="Entrez votre pseudo">

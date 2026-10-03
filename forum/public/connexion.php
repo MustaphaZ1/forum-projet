@@ -4,6 +4,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/header.php';
 $erreur='';
 if ($_SERVER['REQUEST_METHOD']==='POST'){
+    csrf_verifier();
     $email=trim($_POST['email']??'');
     $mot_de_passe=$_POST['mot_de_passe']??'';
     if ($email === ''|| $mot_de_passe ===''){
@@ -34,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
         <div class="alert alert-danger"><?= htmlspecialchars($erreur) ?></div>
     <?php endif;?>
     <form action="" method="post">
+        <?= csrf_champ() ?>
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
             <input type="email" name="email" id="email" class="form-control" required placeholder="Entrez votre email">

@@ -63,6 +63,7 @@ if (formEnvoi){
         const donnees= new FormData(); // CREE UN OBJET FORMDATA POUR ENVOYER LES DONNEES EN POST
         donnees.append('contenu', contenu);
         donnees.append('ajax', '1'); // INDIQUE AU SERVEUR QU'IL S'AGIT D'UNE REQUETE AJAX
+        donnees.append('csrf_token', CSRF_TOKEN);
         // ENVOI LES DONNEES AU SCRIPT PHP DE LA CONVERSATION
         fetch('conversation.php?id_utilisateur=' + idInterlocuteur, {
             method: 'POST', body: donnees

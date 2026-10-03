@@ -8,6 +8,7 @@ if (!isset($_SESSION['id_utilisateur'])){
 }
 $erreur='';
 if ($_SERVER['REQUEST_METHOD']==='POST'){
+    csrf_verifier();
     $nom=trim($_POST['nom']??'');
     $description=trim($_POST['description']??'');
     if($nom===''){
@@ -27,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
             <div class="alert alert-danger"><?= htmlspecialchars($erreur) ?></div>
         <?php endif; ?>
         <form action="" method="post">
+            <?= csrf_champ() ?>
             <div class="mb-3">
                 <label for="nom" class="form-label">Nom</label>
                 <input type="text" name="nom" id="nom" class="form-control" required placeholder="Entrez le nom de la nouvelle catégorie ...">
