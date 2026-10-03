@@ -4,8 +4,8 @@ date_default_timezone_set('Europe/Paris'); // DEFINIT LE FUSEAU HORAIRE SUR PARI
 require_once __DIR__ . '/../config/database.php'; // CONNEXION A LA BASE DE DONNEES
 require_once __DIR__ . '/../includes/fonctions_messages.php'; // CHARGE LES FONCTIONS DE CHIFFREMENT/DECHIFFREMENT
 // VERIFIE SI L'UTILISATEUR EST CONNECTE SINON REDIRECTION
-if (!isset($_SESSION['id_utilisateur'])){
-    header('Location: connexion.php');
+if (!isset($_SESSION['id_utilisateur']) || !isset($_SESSION['messagerie_deverrouillee'])){
+    header('Location: acces_messagerie.php');
     exit;
 }
 $pdo=getPDO();

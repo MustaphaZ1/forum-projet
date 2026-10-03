@@ -3,8 +3,8 @@ session_start();
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/fonctions_messages.php';
-if(!isset($_SESSION['id_utilisateur'])){
-    header('Location: connexion.php');
+if(!isset($_SESSION['id_utilisateur']) || !isset($_SESSION['messagerie_deverrouillee'])){
+    header('Location: acces_messagerie.php');
     exit;
 }
 $pdo=getPDO();

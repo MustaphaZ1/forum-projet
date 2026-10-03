@@ -1,3 +1,18 @@
+<?php
+require_once __DIR__ . '/csrf.php';
+$pages_messagerie = [
+    'messages_prives.php',
+    'conversation.php',
+    'acces_messagerie.php',
+    'definir_codes_messagerie.php',
+    'nouveau_message_prive.php',
+    'supprimer_message_prive.php',
+];
+$page_actuelle = basename($_SERVER['SCRIPT_NAME']);
+if (!in_array($page_actuelle, $pages_messagerie, true)) {
+    unset($_SESSION['messagerie_deverrouillee']);
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -19,7 +34,7 @@
                 </a>
                 <div class="ms-auto d-flex flex-wrap align-items-center justify-content-end gap-2">
                     <?php if (isset($_SESSION['pseudo'])): ?>
-                <a href="/forum/public/messages_prives.php" class="text-decoration-none">🔒📩</a>
+                <a href="/forum/public/acces_messagerie.php" class="text-decoration-none">🔒📩</a>
             <!-- Affiche le pseudo de l'utilisateur connecté (manière sécurisée anti-XSS)-->
                 <p class="text-end mb-0 d-none d-sm-inline">Connecté en tant que <a href="/forum/public/profil.php"><?= htmlspecialchars($_SESSION['pseudo']) ?></a>
                 <p class="text-end mb-0 d-inline d-sm-none"><a href="/forum/public/profil.php"><?= htmlspecialchars($_SESSION['pseudo']) ?></a></p>

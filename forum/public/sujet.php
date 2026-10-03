@@ -57,6 +57,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $id_message_1=$_POST['id_message_1']?? null;
 // Vérifie que cet ID parent est bien numérique
     $id_message_1=($id_message_1 && ctype_digit((string)$id_message_1)) ? $id_message_1 : null;
+    if ($id_message_1){
+        $stmt=$pdo->prepare('SELECT id_message FROM messages WHERE id_message=? AND id_sujet=?');
+        $stmt->execute([$id_message_1, $id_sujet]);
+        if (!$stmt->fetch()){
+            $id_message_1=null;
+        }
+    }
 // Détermine si le message est une réponse (1) ou un message principal (0)
     $reponse_message = $id_message_1 ? 1 : 0;
 // Validation : Empeche l'envoi de messages null
@@ -86,6 +93,7 @@ $messages= trierEnThread($messages);
     <!-- Affiche le bouton supprimer si l'utilisateur connecté est l'auteur -->
         <?php if(isset($_SESSION['id_utilisateur'])&& $_SESSION['id_utilisateur']===$sujet['id_utilisateur']): ?>
             <form action="supprimer_sujet.php" class="mb-3" onsubmit="return confirm('Supprimer ce sujet et tous ses messages ?')"; method="post">
+                <?= csrf_champ() ?>
                 <input type="hidden" name="id_sujet" value="<?= $sujet['id_sujet'] ?>">
                 <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer le sujet</button>
             </form>
