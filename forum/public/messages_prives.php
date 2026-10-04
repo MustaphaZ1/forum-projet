@@ -39,6 +39,27 @@ foreach ($messages as $message){
         $conversations[$id_interlocuteur]['non_lu']++;
     }
 }
+// Récupération des conversations chiffrées E2E (liste séparée, sans aperçu de contenu)
+$stmt = $pdo->prepare('SELECT messages_prives_e2e.*, expediteur.pseudo AS pseudo_expediteur, destinataire.pseudo AS pseudo_destinataire FROM messages_prives_e2e JOIN utilisateurs AS expediteur ON messages_prives_e2e.id_expediteur=expediteur.id_utilisateur JOIN utilisateurs AS destinataire ON messages_prives_e2e.id_destinataire=destinataire.id_utilisateur WHERE messages_prives_e2e.id_expediteur=? OR messages_prives_e2e.id_destinataire=? ORDER BY messages_prives_e2e.date_envoi DESC, messages_prives_e2e.id_message_e2e DESC');
+$stmt->execute([$id_utilisateur, $id_utilisateur]);
+$messages_e2e = $stmt->fetchAll();
+$conversations_e2e = [];
+foreach ($messages_e2e as $message) {
+    if ($message['id_expediteur'] == $id_utilisateur) {
+        $id_interlocuteur_e2e = $message['id_destinataire'];
+        $pseudo_interlocuteur_e2e = $message['pseudo_destinataire'];
+    } else {
+        $id_interlocuteur_e2e = $message['id_expediteur'];
+        $pseudo_interlocuteur_e2e = $message['pseudo_expediteur'];
+    }
+    if (!isset($conversations_e2e[$id_interlocuteur_e2e])) {
+        $conversations_e2e[$id_interlocuteur_e2e] = [
+            'id_interlocuteur' => $id_interlocuteur_e2e,
+            'pseudo' => $pseudo_interlocuteur_e2e,
+            'date_envoi' => $message['date_envoi'],
+        ];
+    }
+}
 ?>
 <body>
     <p><a href="/forum/public/index.php">&larr; Retour aux catégories</a></p>
@@ -71,6 +92,26 @@ foreach ($messages as $message){
                         </div>
                     </a>
                 <?php endforeach; ?>
+        <?php endif; ?>
+
+        <h2 class="h4 mt-5 mb-3">🔒 Conversations chiffrées</h2>
+        <?php if (empty($conversations_e2e)): ?>
+            <div class="alert alert-secondary">Aucune conversation chiffrée pour l'instant.</div>
+        <?php else: ?>
+            <?php foreach ($conversations_e2e as $conversation_e2e): ?>
+                <a href="conversation_e2e.php?id_utilisateur=<?= (int) $conversation_e2e['id_interlocuteur'] ?>" class="text-decoration-none text-reset">
+                    <div class="card mb-3 border-success">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-1"><?= htmlspecialchars($conversation_e2e['pseudo']) ?></h5>
+                            </div>
+                            <small class="text-muted">
+                                <?= date('d/m/Y H:i', strtotime($conversation_e2e['date_envoi'])) ?>
+                            </small>
+                        </div>
+                    </div>
+                </a>
+            <?php endforeach; ?>
         <?php endif; ?>
     </div>
 </body>

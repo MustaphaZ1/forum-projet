@@ -7,6 +7,7 @@ $pages_messagerie = [
     'definir_codes_messagerie.php',
     'nouveau_message_prive.php',
     'supprimer_message_prive.php',
+    'conversation_e2e.php',
 ];
 $page_actuelle = basename($_SERVER['SCRIPT_NAME']);
 if (!in_array($page_actuelle, $pages_messagerie, true)) {
@@ -38,7 +39,7 @@ if (!in_array($page_actuelle, $pages_messagerie, true)) {
             <!-- Affiche le pseudo de l'utilisateur connecté (manière sécurisée anti-XSS)-->
                 <p class="text-end mb-0 d-none d-sm-inline">Connecté en tant que <a href="/forum/public/profil.php"><?= htmlspecialchars($_SESSION['pseudo']) ?></a>
                 <p class="text-end mb-0 d-inline d-sm-none"><a href="/forum/public/profil.php"><?= htmlspecialchars($_SESSION['pseudo']) ?></a></p>
-                <a href="/forum/public/deconnexion.php" class="text-danger text-decoration-none ms-2">
+                <a href="/forum/public/deconnexion.php" id="lien-deconnexion" class="text-danger text-decoration-none ms-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" class="mb-1">
                         <path d="M5.146 5.146a.5.5 0 0 1 .708.708 3.5 3.5 0 1 0 4.288-.001.5.5 0 1 1 .61-.792 4.5 4.5 0 1 1-5.606.001z"/>
                         <path d="M7.5 1v7a.5.5 0 0 0 1 0V1a.5.5 0 0 0-1 0z"/>

@@ -32,5 +32,15 @@
     });
     </script>
     <div class="mb-4"></div>
+    <script src="js/crypto_e2e.js"></script>
+    <script>
+    document.getElementById('lien-deconnexion')?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (typeof effacerClePriveeDechiffree === 'function') {
+            await effacerClePriveeDechiffree();
+        }
+        window.location.href = e.currentTarget.href;
+    });
+    </script>
 </body>
 </html>

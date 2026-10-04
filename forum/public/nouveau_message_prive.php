@@ -33,15 +33,18 @@ if ($_SERVER['REQUEST_METHOD']==='GET'){
         </div>
     </form>
     <?php if ($recherche !== ''): ?>
-        <?php if (empty($resultats)): ?>
+                <?php if (empty($resultats)): ?>
             <div class="alert alert-secondary">Aucun utilisateur trouvé</div>
         <?php else: ?>
             <h5 class="mb-3">Utilisateurs trouvés</h5>
             <?php foreach ($resultats as $utilisateur): ?>
                 <div class="card mb-2">
-                    <div class="card-body d-flex justify-content-between align-items-center">
+                    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <strong><?= htmlspecialchars($utilisateur['pseudo']) ?></strong>
-                        <a href="conversation.php?id_utilisateur=<?= (int) $utilisateur['id_utilisateur'] ?>" class="btn btn-primary">Envoyer un message</a>
+                        <div class="d-flex gap-2">
+                            <a href="conversation.php?id_utilisateur=<?= (int) $utilisateur['id_utilisateur'] ?>" class="btn btn-primary btn-sm">Message</a>
+                            <a href="conversation_e2e.php?id_utilisateur=<?= (int) $utilisateur['id_utilisateur'] ?>" class="btn btn-outline-success btn-sm">🔒 Chiffré</a>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
