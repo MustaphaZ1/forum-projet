@@ -13,7 +13,6 @@ if (!$id_interlocuteur || !ctype_digit((string)$id_interlocuteur)) {
     die('Utilisateur introuvable');
 }
 $id_interlocuteur = (int)$id_interlocuteur;
-
 $stmt = $pdo->prepare('SELECT id_utilisateur, pseudo, cle_publique_e2e FROM utilisateurs WHERE id_utilisateur=?');
 $stmt->execute([$id_interlocuteur]);
 $interlocuteur = $stmt->fetch();
@@ -23,7 +22,8 @@ if (!$interlocuteur) {
 if (!$interlocuteur['cle_publique_e2e']) {
     die('Cet utilisateur n\'a pas activé le chiffrement de bout en bout.');
 }
-
+$pdo->prepare('UPDATE messages_prives_e2e SET lu=1 WHERE id_expediteur=? AND id_destinataire=? AND lu=0')
+    ->execute([$id_interlocuteur, $id_utilisateur]);
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <body>
@@ -55,7 +55,6 @@ const csrfToken = document.querySelector('#form-envoi-e2e [name=csrf_token]').va
 const zoneMessages = document.getElementById('zone-messages-e2e');
 let clePubliqueInterlocuteur = null;
 let dernierIdAffiche = 0;
-
 function escapeHtml(texte) {
     const div = document.createElement('div');
     div.textContent = texte;
@@ -73,7 +72,6 @@ function formaterDate(dateSql) {
     const min = String(date.getMinutes()).padStart(2, '0');
     return `${j}/${m}/${a} ${h}:${min}`;
 }
-
 async function recupererClePubliqueInterlocuteur() {
     const reponse = await fetch('cle_publique.php?id_utilisateur=' + idInterlocuteur);
     const data = await reponse.json();
@@ -82,15 +80,24 @@ async function recupererClePubliqueInterlocuteur() {
     }
     return data.cle_publique;
 }
-
+async function verifierClePriveeDisponible() {
+    const cle = await recupererClePriveeDechiffree();
+    if (!cle) {
+        zoneMessages.innerHTML = '<div class="alert alert-warning"><strong>Clé de déchiffrement indisponible sur cet appareil.</strong><br>Si c\'est la première fois que tu utilises la messagerie chiffrée sur ce navigateur ou cet appareil, déconnecte-toi puis reconnecte-toi — la clé se déverrouille automatiquement à la connexion.</div>';
+        return false;
+    }
+    return true;
+}
 async function chargerMessages() {
     try {
+        if (!(await verifierClePriveeDisponible())) {
+            return;
+        }
         if (!clePubliqueInterlocuteur) {
             clePubliqueInterlocuteur = await recupererClePubliqueInterlocuteur();
         }
-        const reponse = await fetch('recuperer_messages_e2e.php?id_interlocuteur=' + idInterlocuteur);
+        const reponse = await fetch('recuperer_messages_e2e.php?id_interlocuteur=' + idInterlocuteur + '&depuis_id=' + dernierIdAffiche);
         const messages = await reponse.json();
-
         // Conversation vide : on l'affiche une seule fois, au tout premier chargement
         if (messages.length === 0) {
             if (dernierIdAffiche === 0) {
@@ -98,17 +105,14 @@ async function chargerMessages() {
             }
             return;
         }
-
         const nouveaux = messages.filter(m => m.id_message_e2e > dernierIdAffiche);
         if (nouveaux.length === 0) {
             return; // rien de neuf, on ne touche à rien
         }
-
         // Si c'est le tout premier chargement, on vide le message "Chargement..." initial
         if (dernierIdAffiche === 0) {
             zoneMessages.innerHTML = '';
         }
-
         for (const m of nouveaux) {
             let contenu;
             try {
@@ -125,7 +129,6 @@ async function chargerMessages() {
             zoneMessages.appendChild(div);
             dernierIdAffiche = m.id_message_e2e;
         }
-
         zoneMessages.scrollTop = zoneMessages.scrollHeight;
     } catch (err) {
         if (dernierIdAffiche === 0) {
@@ -134,28 +137,26 @@ async function chargerMessages() {
         console.error(err);
     }
 }
-
 document.getElementById('form-envoi-e2e').addEventListener('submit', async (e) => {
     e.preventDefault();
     const champ = document.getElementById('contenu-message-e2e');
     const texte = champ.value.trim();
     if (texte === '') return;
-
+    if (!(await verifierClePriveeDisponible())) {
+        return;
+    }
     try {
         if (!clePubliqueInterlocuteur) {
             clePubliqueInterlocuteur = await recupererClePubliqueInterlocuteur();
         }
         const { contenu_chiffre, iv } = await chiffrerMessageE2E(texte, clePubliqueInterlocuteur);
-
         const donnees = new FormData();
         donnees.append('id_destinataire', idInterlocuteur);
         donnees.append('contenu_chiffre', contenu_chiffre);
         donnees.append('iv', iv);
         donnees.append('csrf_token', csrfToken);
-
         const reponse = await fetch('envoyer_message_e2e.php', { method: 'POST', body: donnees });
         const resultat = await reponse.json();
-
         if (resultat.succes) {
             champ.value = '';
             await chargerMessages();

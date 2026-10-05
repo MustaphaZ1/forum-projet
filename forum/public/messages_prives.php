@@ -40,7 +40,7 @@ foreach ($messages as $message){
     }
 }
 // Récupération des conversations chiffrées E2E (liste séparée, sans aperçu de contenu)
-$stmt = $pdo->prepare('SELECT messages_prives_e2e.*, expediteur.pseudo AS pseudo_expediteur, destinataire.pseudo AS pseudo_destinataire FROM messages_prives_e2e JOIN utilisateurs AS expediteur ON messages_prives_e2e.id_expediteur=expediteur.id_utilisateur JOIN utilisateurs AS destinataire ON messages_prives_e2e.id_destinataire=destinataire.id_utilisateur WHERE messages_prives_e2e.id_expediteur=? OR messages_prives_e2e.id_destinataire=? ORDER BY messages_prives_e2e.date_envoi DESC, messages_prives_e2e.id_message_e2e DESC');
+$stmt = $pdo->prepare('SELECT messages_prives_e2e.*, expediteur.pseudo AS pseudo_expediteur, destinataire.pseudo AS pseudo_destinataire FROM messages_prives_e2e JOIN utilisateurs AS expediteur ON messages_prives_e2e.id_expediteur=expediteur.id_utilisateur JOIN utilisateurs AS destinataire ON messages_prives_e2e.id_destinataire=destinataire.id_utilisateur WHERE (messages_prives_e2e.id_expediteur=? AND messages_prives_e2e.suppression_expediteur=0) OR (messages_prives_e2e.id_destinataire=? AND messages_prives_e2e.suppression_destinataire=0) ORDER BY messages_prives_e2e.date_envoi DESC, messages_prives_e2e.id_message_e2e DESC');
 $stmt->execute([$id_utilisateur, $id_utilisateur]);
 $messages_e2e = $stmt->fetchAll();
 $conversations_e2e = [];
@@ -57,7 +57,11 @@ foreach ($messages_e2e as $message) {
             'id_interlocuteur' => $id_interlocuteur_e2e,
             'pseudo' => $pseudo_interlocuteur_e2e,
             'date_envoi' => $message['date_envoi'],
+            'non_lu' => 0,
         ];
+    }
+    if ($message['id_destinataire'] == $id_utilisateur && $message['lu'] == 0) {
+        $conversations_e2e[$id_interlocuteur_e2e]['non_lu']++;
     }
 }
 ?>
@@ -103,7 +107,11 @@ foreach ($messages_e2e as $message) {
                     <div class="card mb-3 border-success">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-1"><?= htmlspecialchars($conversation_e2e['pseudo']) ?></h5>
+                                <h5 class="card-title mb-1"><?= htmlspecialchars($conversation_e2e['pseudo']) ?>
+                                <?php if ($conversation_e2e['non_lu'] > 0): ?>
+                                <span class="badge bg-primary ms-2"><?= $conversation_e2e['non_lu'] ?></span>
+                                <?php endif; ?>
+                                </h5>
                             </div>
                             <small class="text-muted">
                                 <?= date('d/m/Y H:i', strtotime($conversation_e2e['date_envoi'])) ?>

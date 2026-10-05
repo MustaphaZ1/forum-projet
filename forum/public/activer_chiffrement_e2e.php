@@ -10,7 +10,9 @@ $pdo = getPDO();
 $id_utilisateur = $_SESSION['id_utilisateur'];
 $erreur = '';
 $success = '';
-
+$stmt = $pdo->prepare('SELECT cle_publique_e2e FROM utilisateurs WHERE id_utilisateur=?');
+$stmt->execute([$id_utilisateur]);
+$deja_active = (bool)$stmt->fetchColumn();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verifier();
     $cle_publique = $_POST['cle_publique'] ?? '';
@@ -30,11 +32,17 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 <main>
     <h1>Activer le chiffrement de bout en bout (test)</h1>
-    <p class="text-muted">Cette page génère une paire de clés dans ton navigateur. La clé privée est chiffrée avec ton mot de passe avant d'être envoyée — le serveur ne voit jamais ta clé privée en clair.</p>
+        <p class="text-muted">Cette page génère une paire de clés dans ton navigateur. La clé privée est chiffrée avec ton mot de passe avant d'être envoyée — le serveur ne voit jamais ta clé privée en clair.</p>
+    <?php if ($deja_active && !$success): ?>
+        <div class="alert alert-danger">
+            <strong>Attention : tu as déjà activé le chiffrement.</strong><br>
+            Regénérer tes clés remplacera définitivement les anciennes. Tous les messages chiffrés déjà échangés avec d'autres personnes deviendront <strong>impossibles à déchiffrer pour toujours</strong>, sans aucun moyen de les récupérer. Ne continue que si tu es certain de vouloir faire ça (par exemple après une perte d'accès).
+        </div>
+    <?php endif; ?>
     <?php if ($erreur): ?><div class="alert alert-danger"><?= htmlspecialchars($erreur) ?></div><?php endif; ?>
     <?php if ($success): ?><div class="alert alert-success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
 
-    <form id="form-activation" method="post" onsubmit="return false;">
+    <form id="form-activation" method="post" onsubmit="return false;" data-deja-active="<?= $deja_active ? '1' : '0' ?>">
         <?= csrf_champ() ?>
         <div class="mb-3">
             <label class="form-label">Confirme ton mot de passe</label>
@@ -48,6 +56,10 @@ require_once __DIR__ . '/../includes/header.php';
 <script>
 document.getElementById('form-activation').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const dejaActive = e.target.dataset.dejaActive === '1';
+    if (dejaActive && !confirm('Tu es sur le point de régénérer tes clés. Tous tes anciens messages chiffrés deviendront illisibles pour toujours. Confirmer ?')) {
+        return;
+    }
     const motDePasse = document.getElementById('mot_de_passe').value;
     const resultatDiv = document.getElementById('resultat');
     resultatDiv.innerHTML = '<div class="alert alert-info">Génération en cours...</div>';
@@ -64,7 +76,14 @@ document.getElementById('form-activation').addEventListener('submit', async (e) 
 
         const reponse = await fetch('activer_chiffrement_e2e.php', { method: 'POST', body: formData });
         if (reponse.redirected || reponse.ok) {
-            resultatDiv.innerHTML = '<div class="alert alert-success">Clés générées et envoyées. Recharge la page pour confirmer.</div>';
+            // Déverrouille immédiatement la clé privée sur cet appareil, sans déconnexion nécessaire
+            await deverrouillerClePrivee(
+                motDePasse,
+                donnees.cle_privee_chiffree,
+                donnees.iv_cle_privee,
+                donnees.sel_derivation
+            );
+            resultatDiv.innerHTML = '<div class="alert alert-success">Chiffrement activé et prêt à l\'emploi sur cet appareil. Tu peux dès maintenant utiliser la messagerie chiffrée.</div>';
         }
     } catch (err) {
         resultatDiv.innerHTML = '<div class="alert alert-danger">Erreur : ' + err.message + '</div>';

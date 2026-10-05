@@ -14,11 +14,23 @@ if (!$id_interlocuteur || !ctype_digit((string)$id_interlocuteur)) {
     echo json_encode(['erreur' => 'Interlocuteur invalide']);
     exit;
 }
-$pdo = getPDO();
-$stmt = $pdo->prepare('SELECT id_message_e2e, id_expediteur, id_destinataire, contenu_chiffre, iv, date_envoi FROM messages_prives_e2e WHERE (id_expediteur=? AND id_destinataire=? AND suppression_expediteur=0) OR (id_expediteur=? AND id_destinataire=? AND suppression_destinataire=0) ORDER BY date_envoi ASC, id_message_e2e ASC');
-$stmt->execute([$id_utilisateur, $id_interlocuteur, $id_interlocuteur, $id_utilisateur]);
-$messages = $stmt->fetchAll();
+$depuis_id = $_GET['depuis_id'] ?? 0;
+if (!ctype_digit((string)$depuis_id)) {
+    $depuis_id = 0;
+}
 
+$pdo = getPDO();
+if ($depuis_id > 0) {
+    // Rafraîchissement incrémental : uniquement les messages plus récents que ceux déjà affichés
+    $stmt = $pdo->prepare('SELECT id_message_e2e, id_expediteur, id_destinataire, contenu_chiffre, iv, date_envoi FROM messages_prives_e2e WHERE ((id_expediteur=? AND id_destinataire=? AND suppression_expediteur=0) OR (id_expediteur=? AND id_destinataire=? AND suppression_destinataire=0)) AND id_message_e2e > ? ORDER BY date_envoi ASC, id_message_e2e ASC');
+    $stmt->execute([$id_utilisateur, $id_interlocuteur, $id_interlocuteur, $id_utilisateur, $depuis_id]);
+    $messages = $stmt->fetchAll();
+} else {
+    // Premier chargement : les 30 derniers messages seulement
+    $stmt = $pdo->prepare('SELECT id_message_e2e, id_expediteur, id_destinataire, contenu_chiffre, iv, date_envoi FROM messages_prives_e2e WHERE (id_expediteur=? AND id_destinataire=? AND suppression_expediteur=0) OR (id_expediteur=? AND id_destinataire=? AND suppression_destinataire=0) ORDER BY date_envoi DESC, id_message_e2e DESC LIMIT 30');
+    $stmt->execute([$id_utilisateur, $id_interlocuteur, $id_interlocuteur, $id_utilisateur]);
+    $messages = array_reverse($stmt->fetchAll()); // remis dans l'ordre chronologique
+}
 $resultat = [];
 foreach ($messages as $m) {
     $resultat[] = [
