@@ -2,8 +2,10 @@
 session_start();
 $estAjax=!empty($_POST['ajax']);
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/header.php';
 if (!isset($_SESSION['id_utilisateur'])){
+    csrf_verifier();
     header('Location: connexion.php');
     exit;
 }

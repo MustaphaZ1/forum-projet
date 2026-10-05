@@ -108,12 +108,17 @@ zoneMessages.addEventListener('submit', (e)=>{
 });
 // FONCTION DE CHARGEMENT DES MSG VIA AJAX
 function chargerMessages(){
-    // RECUPERE LES MSG DEPUIS LE SCRIPT PHP EN PASSANT L'ID DE L'INTERLOCUTEUR DANS L'URL
-    fetch(`recuperer_message.php?id_interlocuteur=${idInterlocuteur}`)
-    .then(response => response.json()) // CONVERTIT LA REPONSE BRUTE EN FORMAT JSON
-    .then(messages => afficherMessages(messages)) // APPELLE LA FONCTION D'AFFICHAGE AVEC LES DONNEES RECUES
-    .catch(erreur => console.error('Erreur de chargement des message :', erreur)); // GERE LES ERREURS DE RECUPERATION
+    const visible= document.hidden ? 0 : 1;
+    fetch(`recuperer_message.php?id_interlocuteur=${idInterlocuteur}&visible=${visible}`)
+    .then(response => {
+        const marques= parseInt(response.headers.get('X-Messages-Marques') || '0', 10);
+        if (marques > 0 && typeof majBadgeMessages === 'function') majBadgeMessages();
+        return response.json();
+    })
+    .then(messages => afficherMessages(messages))
+    .catch(erreur => console.error('Erreur de chargement des message :', erreur));
 }
 // APPELS INITIAUX ET AUTOMATIQUES
 chargerMessages(); // CHARGE LES MSG IMMEDIATEMENT AU CHARGEMENT DE LA PAGE
 setInterval(chargerMessages, 2800); // ACTUALISE AUTOMATIQUEMENT LES MESSAGES TOUTES LES 2,8S POUR SIMULER LE TEMPS REEL
+document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) chargerMessages(); });

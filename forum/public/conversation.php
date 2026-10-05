@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST'){
 }
 // MISE A JOUR DES STATUTS DE LECTURE
 // MARQUE COMME LU=1 LES MSG DE L'INTERLOCUTEUR PAS ENCORE LUS
-$stmt=$pdo->prepare('UPDATE messages_prives SET lu=1 WHERE id_expediteur=? AND id_destinataire=? AND lu=0');
+/*$stmt=$pdo->prepare('UPDATE messages_prives SET lu=1 WHERE id_expediteur=? AND id_destinataire=? AND lu=0');*/
 $stmt->execute([$id_interlocuteur, $id_utilisateur]);
 // RECUPERATION DE TOUTE LA CONVERSATION
 // RECUPERE L'HISTORIQUE DES MSG ENTRE LES DES UTILISATEURS

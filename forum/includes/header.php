@@ -35,9 +35,8 @@ if (!in_array($page_actuelle, $pages_messagerie, true)) {
                 </a>
                 <div class="ms-auto d-flex flex-wrap align-items-center justify-content-end gap-2">
                     <?php if (isset($_SESSION['pseudo'])): ?>
-                <a href="/forum/public/acces_messagerie.php" class="text-decoration-none">🔒📩</a>
             <!-- Affiche le pseudo de l'utilisateur connecté (manière sécurisée anti-XSS)-->
-                <p class="text-end mb-0 d-none d-sm-inline">Connecté en tant que <a href="/forum/public/profil.php"><?= htmlspecialchars($_SESSION['pseudo']) ?></a>
+                <p class="text-end mb-0 d-none d-sm-inline">Connecté en tant que <a href="/forum/public/profil.php"><?= htmlspecialchars($_SESSION['pseudo']) ?></a></p>
                 <p class="text-end mb-0 d-inline d-sm-none"><a href="/forum/public/profil.php"><?= htmlspecialchars($_SESSION['pseudo']) ?></a></p>
                 <a href="/forum/public/deconnexion.php" id="lien-deconnexion" class="text-danger text-decoration-none ms-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" class="mb-1">
@@ -45,7 +44,7 @@ if (!in_array($page_actuelle, $pages_messagerie, true)) {
                         <path d="M7.5 1v7a.5.5 0 0 0 1 0V1a.5.5 0 0 0-1 0z"/>
                     </svg>
                     <span class="d-none d-sm-inline">Se déconnecter</span>
-                </a></p>
+                </a>
             <!-- Si l'utilisateur n'est pas connecté-->
                 <?php else : ?>
                     <p class="mb-0">
@@ -60,3 +59,21 @@ if (!in_array($page_actuelle, $pages_messagerie, true)) {
         </nav>
     </header>
     <div class="container mt-4">
+<?php if (isset($_SESSION['pseudo'])): ?>
+<script>
+async function majBadgeMessages(){
+    try {
+        const reponse=await fetch('/forum/public/api_notifications.php', {cache: 'no-store'});
+        if (!reponse.ok) return;
+        const data=await reponse.json();
+        const badge=document.getElementById('badge-messagerie');
+        if (!badge || !data.succes) return;
+        badge.textContent=data.messages_non_lus > 99 ? '99+' : data.messages_non_lus;
+        badge.hidden=data.messages_non_lus===0;
+    } catch (err) {}
+}
+majBadgeMessages();
+setInterval(majBadgeMessages, 30000);
+document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) majBadgeMessages(); });
+</script>
+<?php endif; ?>

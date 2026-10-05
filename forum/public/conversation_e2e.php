@@ -22,8 +22,6 @@ if (!$interlocuteur) {
 if (!$interlocuteur['cle_publique_e2e']) {
     die('Cet utilisateur n\'a pas activé le chiffrement de bout en bout.');
 }
-$pdo->prepare('UPDATE messages_prives_e2e SET lu=1 WHERE id_expediteur=? AND id_destinataire=? AND lu=0')
-    ->execute([$id_interlocuteur, $id_utilisateur]);
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <body>
@@ -55,6 +53,24 @@ const csrfToken = document.querySelector('#form-envoi-e2e [name=csrf_token]').va
 const zoneMessages = document.getElementById('zone-messages-e2e');
 let clePubliqueInterlocuteur = null;
 let dernierIdAffiche = 0;
+let dernierRecuAMarquer = 0;
+async function marquerCommeLuSiVisible() {
+    if (document.hidden || dernierRecuAMarquer === 0) return;
+    const jusquId = dernierRecuAMarquer;
+    dernierRecuAMarquer = 0;
+    try {
+        const donnees = new FormData();
+        donnees.append('id_interlocuteur', idInterlocuteur);
+        donnees.append('jusqu_id', jusquId);
+        donnees.append('csrf_token', csrfToken);
+        await fetch('marquer_lu_e2e.php', { method: 'POST', body: donnees });
+        if (typeof majBadgeMessages === 'function') majBadgeMessages();
+    } catch (err) {
+        dernierRecuAMarquer = Math.max(dernierRecuAMarquer, jusquId);
+        console.error('Erreur marquage lu :', err);
+    }
+}
+document.addEventListener('visibilitychange', marquerCommeLuSiVisible);
 function escapeHtml(texte) {
     const div = document.createElement('div');
     div.textContent = texte;
@@ -115,21 +131,22 @@ async function chargerMessages() {
         }
         for (const m of nouveaux) {
             let contenu;
+            let dechiffre = true;
             try {
                 contenu = await dechiffrerMessageE2E(m.contenu_chiffre, m.iv, clePubliqueInterlocuteur);
             } catch (err) {
                 contenu = '[Impossible de déchiffrer ce message]';
+                dechiffre = false;
                 console.error('Erreur déchiffrement message', m.id_message_e2e, err);
             }
-            const alignement = m.est_moi ? 'justify-content-end' : 'justify-content-start';
-            const classeCard = m.est_moi ? 'message-envoye' : 'message-recu';
-            const div = document.createElement('div');
-            div.className = `d-flex mb-3 ${alignement}`;
-            div.innerHTML = `<div class="card ${classeCard}" style="max-width:70%;"><div class="card-body"><p class="card-text mb-2">${nl2br(contenu)}</p><small>${formaterDate(m.date_envoi)}</small><form method="post" action="supprimer_message_e2e.php" class="mt-1"><input type="hidden" name="id_message_e2e" value="${m.id_message_e2e}"><input type="hidden" name="id_interlocuteur" value="${idInterlocuteur}"><input type="hidden" name="csrf_token" value="${csrfToken}"><button type="submit" class="btn btn-link btn-sm text-decoration-none p-0">Supprimer &#x1F5D1;</button></form></div></div>`;
-            zoneMessages.appendChild(div);
+            // ... (le reste de ta boucle ne change pas)
             dernierIdAffiche = m.id_message_e2e;
+            if (!m.est_moi && dechiffre) {
+                dernierRecuAMarquer = Number(m.id_message_e2e);
+            }
         }
-        zoneMessages.scrollTop = zoneMessages.scrollHeight;
+    zoneMessages.scrollTop = zoneMessages.scrollHeight;
+    await marquerCommeLuSiVisible();
     } catch (err) {
         if (dernierIdAffiche === 0) {
             zoneMessages.innerHTML = '<div class="alert alert-danger">Erreur de chargement des messages.</div>';

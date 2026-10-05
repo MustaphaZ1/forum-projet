@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Europe/Paris');
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/fonctions_messages.php';
@@ -9,8 +10,8 @@ if(!isset($_SESSION['id_utilisateur']) || !isset($_SESSION['messagerie_deverroui
 }
 $pdo=getPDO();
 $id_utilisateur=$_SESSION['id_utilisateur'];
-$stmt=$pdo->prepare('SELECT messages_prives.*, expediteur.pseudo AS pseudo_expediteur, destinataire.pseudo AS pseudo_destinataire FROM messages_prives JOIN utilisateurs AS expediteur ON messages_prives.id_expediteur=expediteur.id_utilisateur JOIN utilisateurs AS destinataire ON messages_prives.id_destinataire=destinataire.id_utilisateur WHERE (messages_prives.id_expediteur=? AND messages_prives.suppression_expediteur=0) OR (messages_prives.id_destinataire=? AND messages_prives.suppression_destinataire=0) ORDER BY messages_prives.date_envoi DESC, messages_prives.id_message_prive DESC');
-$stmt->execute([$id_utilisateur, $id_utilisateur]);
+$stmt=$pdo->prepare('SELECT messages_prives.*, expediteur.pseudo AS pseudo_expediteur, destinataire.pseudo AS pseudo_destinataire FROM messages_prives JOIN utilisateurs AS expediteur ON messages_prives.id_expediteur=expediteur.id_utilisateur JOIN utilisateurs AS destinataire ON messages_prives.id_destinataire=destinataire.id_utilisateur WHERE ((messages_prives.id_expediteur=? AND messages_prives.suppression_expediteur=0) OR (messages_prives.id_destinataire=? AND messages_prives.suppression_destinataire=0)) AND (messages_prives.expire_a IS NULL OR messages_prives.expire_a > ?) ORDER BY messages_prives.date_envoi DESC, messages_prives.id_message_prive DESC');
+$stmt->execute([$id_utilisateur, $id_utilisateur, date('Y-m-d H:i:s')]);
 $messages=$stmt->fetchAll();
 $conversation=[];
 foreach ($messages as $message){
@@ -40,8 +41,8 @@ foreach ($messages as $message){
     }
 }
 // Récupération des conversations chiffrées E2E (liste séparée, sans aperçu de contenu)
-$stmt = $pdo->prepare('SELECT messages_prives_e2e.*, expediteur.pseudo AS pseudo_expediteur, destinataire.pseudo AS pseudo_destinataire FROM messages_prives_e2e JOIN utilisateurs AS expediteur ON messages_prives_e2e.id_expediteur=expediteur.id_utilisateur JOIN utilisateurs AS destinataire ON messages_prives_e2e.id_destinataire=destinataire.id_utilisateur WHERE (messages_prives_e2e.id_expediteur=? AND messages_prives_e2e.suppression_expediteur=0) OR (messages_prives_e2e.id_destinataire=? AND messages_prives_e2e.suppression_destinataire=0) ORDER BY messages_prives_e2e.date_envoi DESC, messages_prives_e2e.id_message_e2e DESC');
-$stmt->execute([$id_utilisateur, $id_utilisateur]);
+$stmt = $pdo->prepare('SELECT messages_prives_e2e.*, expediteur.pseudo AS pseudo_expediteur, destinataire.pseudo AS pseudo_destinataire FROM messages_prives_e2e JOIN utilisateurs AS expediteur ON messages_prives_e2e.id_expediteur=expediteur.id_utilisateur JOIN utilisateurs AS destinataire ON messages_prives_e2e.id_destinataire=destinataire.id_utilisateur WHERE ((messages_prives_e2e.id_expediteur=? AND messages_prives_e2e.suppression_expediteur=0) OR (messages_prives_e2e.id_destinataire=? AND messages_prives_e2e.suppression_destinataire=0)) AND (messages_prives_e2e.expire_a IS NULL OR messages_prives_e2e.expire_a > ?) ORDER BY messages_prives_e2e.date_envoi DESC, messages_prives_e2e.id_message_e2e DESC');
+$stmt->execute([$id_utilisateur, $id_utilisateur, date('Y-m-d H:i:s')]);
 $messages_e2e = $stmt->fetchAll();
 $conversations_e2e = [];
 foreach ($messages_e2e as $message) {
